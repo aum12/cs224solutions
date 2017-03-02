@@ -23,7 +23,17 @@ def gradcheck_naive(f, x):
         ### make sure you call random.setstate(rndstate) before calling f(x) each time, this will make it 
         ### possible to test cost functions with built in randomness later
         ### YOUR CODE HERE:
-        raise NotImplementedError
+        old_value = x[ix]
+        x[ix] = old_value + h
+        random.setstate(rndstate)
+        fxph, _ = f(x)
+
+        x[ix] = old_value - h
+        random.setstate(rndstate)
+        fxmh, _ = f(x)
+        # setting ix back to original value
+        x[ix] = old_value
+        numgrad = (fxph - fxmh) / (2 * h)
         ### END YOUR CODE
 
         # Compare gradients
