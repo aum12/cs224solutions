@@ -17,7 +17,7 @@ def forward_backward_prop(data, labels, params, dimensions):
     ofs = 0
     Dx, H, Dy = (dimensions[0], dimensions[1], dimensions[2])
 
-    W1 = np.reshape(params[ofs:ofs+ Dx * H], (Dx, H))
+    W1 = np.reshape(params[ofs:ofs + Dx * H], (Dx, H))
     ofs += Dx * H
     b1 = np.reshape(params[ofs:ofs + H], (1, H))
     ofs += H
@@ -26,15 +26,21 @@ def forward_backward_prop(data, labels, params, dimensions):
     b2 = np.reshape(params[ofs:ofs + Dy], (1, Dy))
 
     ### YOUR CODE HERE: forward propagation
-    z = np.dot(data, W1) + b1
-    a1 = sigmoid(z)
-    z2 = np.dot(a1, W2) + b2
-    yhat = softmax(z2)
+    a1 = sigmoid(np.dot(data, W1) + b1)   # N x H
+    yhat = softmax(np.dot(a1, W2) + b2)   # N x Dy
 
+    #import pdb; pdb.set_trace()
+    # cross entropy loss - only sum where label is 1
+    cost = -np.sum(np.log(yhat) * labels)
     ### END YOUR CODE
 
     ### YOUR CODE HERE: backward propagation
-    raise NotImplementedError
+    dcost = yhat - labels           # N x Dy
+    gradW2 = np.dot(a1.T, dcost)    # H x Dy
+    gradb2 = np.sum(dcost, axis=0)  # 1 x Dy
+    da1 = np.dot(dcost, W2.T) * sigmoid_grad(a1)    # N x H
+    gradW1 = np.dot(data.T, da1)    # Dx x H
+    gradb1 = np.sum(da1, axis=0)    # 1 x H
     ### END YOUR CODE
 
     ### Stack gradients (do not modify)
@@ -72,7 +78,7 @@ def your_sanity_checks():
     """
     print "Running your sanity checks..."
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #raise NotImplementedError
     ### END YOUR CODE
 
 if __name__ == "__main__":
