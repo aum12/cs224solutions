@@ -1,5 +1,4 @@
 import time
-import math
 import numpy as np
 import tensorflow as tf
 from q1_softmax import softmax
@@ -113,7 +112,8 @@ class SoftmaxModel(Model):
           train_op: The Op for training.
         """
         # YOUR CODE HERE
-        raise NotImplementedError
+        opt = tf.train.GradientDescentOptimizer(self.config.lr)
+        train_op = opt.minimize(loss)
         # END YOUR CODE
         return train_op
 
@@ -137,9 +137,15 @@ class SoftmaxModel(Model):
           out: A tensor of shape (batch_size, n_classes)
         """
         # YOUR CODE HERE
-        raise NotImplementedError
+        with tf.name_scope('softmax_regression'):
+            W = tf.get_variable(
+                'weights', (self.config.n_features, self.config.n_classes), initializer=tf.constant_initializer(0.0))
+            b = tf.get_variable(
+                'bias', (self.config.batch_size, 1), initializer=tf.constant_initializer(0.0))
+
+            yhat = softmax(tf.matmul(input_data, W) + b)
         # END YOUR CODE
-        return out
+        return yhat
 
     def add_loss_op(self, pred):
         """Adds cross_entropy_loss ops to the computational graph.
@@ -152,7 +158,8 @@ class SoftmaxModel(Model):
           loss: A 0-d tensor (scalar)
         """
         # YOUR CODE HERE
-        raise NotImplementedError
+        # import pdb; pdb.set_trace()
+        loss = cross_entropy_loss(self.labels_placeholder, pred)
         # END YOUR CODE
         return loss
 
@@ -237,7 +244,7 @@ def test_SoftmaxModel():
         sess = tf.Session()
 
         # Run the Op to initialize the variables.
-        init = tf.initialize_all_variables()
+        init = tf.global_variables_initializer()
         sess.run(init)
 
         losses = model.fit(sess, model.input_data, model.input_labels)

@@ -54,10 +54,7 @@ def cross_entropy_loss(y, yhat):
             tensor in the problem.
     """
     # YOUR CODE HERE
-    onehots = tf.multiply(tf.to_float(y), yhat)
-    sample_probs = tf.reduce_sum(onehots, 1, keep_dims=True)
-    sample_logs = tf.log(sample_probs)
-    out = -1 * tf.reduce_sum(sample_logs)
+    out = -tf.reduce_sum(tf.to_float(y) * tf.log(yhat))
     # END YOUR CODE
     return out
 
