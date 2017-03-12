@@ -1,5 +1,5 @@
 core.*
 **/core.*
 **/*.zip
-a1/src/*.pyc
-a2/src/*.pyc
+**/**/*.pyc
+**/**/**/*.pyc
