@@ -25,6 +25,7 @@ class Config(object):
     label_size = 5
     hidden_size = 100
     max_epochs = 24
+    # max_epochs = 1
     early_stopping = 2
     dropout = 0.9
     lr = 0.001
@@ -96,9 +97,11 @@ class NERModel(LanguageModel):
         (Don't change the variable names)
         """
         # YOUR CODE HERE
-        self.input_placeholder = tf.placeholder(tf.int32)
-        self.labels_placeholder = tf.placeholder(tf.float32)
-        self.dropout_placeholder = tf.placeholder(tf.float32)
+        self.input_placeholder = tf.placeholder(
+            tf.int32, shape=(None, self.config.window_size))
+        self.labels_placeholder = tf.placeholder(
+            tf.float32, shape=(None, self.config.label_size))
+        self.dropout_placeholder = tf.placeholder(tf.float32, shape=())
         # END YOUR CODE
 
     def create_feed_dict(self, input_batch, dropout, label_batch=None):
@@ -205,12 +208,14 @@ class NERModel(LanguageModel):
             h = tf.nn.dropout(h, self.dropout_placeholder)
 
         with tf.variable_scope('softmax', initializer=xavier_weight_init()):
-            U = tf.get_variable('U', (self.config.hidden_size, self.config.label_size))
+            U = tf.get_variable(
+                'U', (self.config.hidden_size, self.config.label_size))
             b2 = tf.get_variable('b2', (self.config.label_size,))
             # regularize U
             reg_U = self.config.l2 * tf.nn.l2_loss(U)
             tf.add_to_collection('total_loss', reg_U)
-            output = tf.nn.softmax(tf.matmul(h, U) + b2)
+            # softmax activation function applied in loss op
+            output = tf.matmul(h, U) + b2
             output = tf.nn.dropout(output, self.dropout_placeholder)
         # END YOUR CODE
         return output
@@ -226,7 +231,11 @@ class NERModel(LanguageModel):
           loss: A 0-d tensor (scalar)
         """
         # YOUR CODE HERE
-        # CE_loss = tf.nn.softmax_cross_entropy_with_logits
+        CE_loss = tf.nn.softmax_cross_entropy_with_logits(
+            logits=y, labels=self.labels_placeholder)
+        CE_loss = tf.reduce_mean(CE_loss)
+        tf.add_to_collection('total_loss', CE_loss)
+        loss = tf.add_n(tf.get_collection('total_loss'))
         # END YOUR CODE
         return loss
 
@@ -250,7 +259,8 @@ class NERModel(LanguageModel):
           train_op: The Op for training.
         """
         # YOUR CODE HERE
-        raise NotImplementedError
+        opt = tf.train.AdamOptimizer(learning_rate=self.config.lr)
+        train_op = opt.minimize(loss)
         # END YOUR CODE
         return train_op
 
