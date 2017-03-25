@@ -37,7 +37,7 @@ class Config(object):
 
 class RNNLM_Model(LanguageModel):
 
-    def load_data(self, debug=False):
+    def load_data(self, debug=True):
         """Loads starter word-vectors and train/dev/test data."""
         self.vocab = Vocab()
         self.vocab.construct(get_ptb_dataset('train'))
@@ -184,8 +184,7 @@ class RNNLM_Model(LanguageModel):
           train_op: The Op for training.
         """
         # YOUR CODE HERE
-        opt = tf.train.AdamOptimizer(self.config.lr)
-        train_op = opt.minimize(loss)
+        train_op = tf.train.AdamOptimizer(self.config.lr).minimize(loss)
         # END YOUR CODE
         return train_op
 
@@ -276,8 +275,8 @@ class RNNLM_Model(LanguageModel):
                 #state = tf.sigmoid(tf.matmul(state, H) + tf.matmul(x, I) + b_1)
                 rnn_outputs.append(state)
 
-            rnn_outputs = [tf.nn.dropout(o, self.dropout_placeholder) for o in rnn_outputs]
             self.final_state = rnn_outputs[-1]
+        rnn_outputs = [tf.nn.dropout(o, self.dropout_placeholder) for o in rnn_outputs]
         # END YOUR CODE
         return rnn_outputs
 

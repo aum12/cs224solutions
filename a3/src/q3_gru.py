@@ -17,6 +17,7 @@ import tensorflow as tf
 import numpy as np
 
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from util import Progbar, minibatches
@@ -87,6 +88,9 @@ class SequencePredictor(Model):
 
         x = self.inputs_placeholder
         ### YOUR CODE HERE (~2-3 lines)
+        h_0 = tf.zeros((tf.shape(self.inputs_placeholder)[0],1))
+        y_t, _ = tf.nn.dynamic_rnn(cell, x, initial_state=h_0)
+        preds = tf.sigmoid(y_t[:,-1,:])
         ### END YOUR CODE
 
         return preds #state # preds
@@ -108,7 +112,7 @@ class SequencePredictor(Model):
         y = self.labels_placeholder
 
         ### YOUR CODE HERE (~1-2 lines)
-
+        loss = tf.reduce_mean(tf.nn.l2_loss(preds))
         ### END YOUR CODE
 
         return loss
@@ -143,6 +147,15 @@ class SequencePredictor(Model):
         # - Remember to clip gradients only if self.config.clip_gradients
         # is True.
         # - Remember to set self.grad_norm
+        grads = optimizer.compute_gradients(loss)
+
+        if self.config.clip_gradients:
+            #compute_gradients returns list of (gradient, variable) pairs. Split them for clipping
+            gradients, variables = zip(*grads)
+            clipped_grads, _ = tf.clip_by_global_norm(gradients, self.config.max_grad_norm)
+            grads = zip(clipped_grads, variables)
+        self.grad_norm = tf.global_norm(grads)
+        train_op = optimizer.apply_gradients(grads)
 
         ### END YOUR CODE
 
