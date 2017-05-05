@@ -3,3 +3,4 @@ core.*
 **/*.zip
 **/**/*.pyc
 **/**/**/*.pyc
+a2/src/weights/
